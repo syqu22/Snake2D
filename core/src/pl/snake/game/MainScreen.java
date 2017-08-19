@@ -124,6 +124,7 @@ public class MainScreen implements Screen{
 		snake_body.add(new Sprite(snake_bodytx));
 		snake_body.add(new Sprite(snake_bodytx));
 		
+		
 	}
 
 	@Override
@@ -134,26 +135,25 @@ public class MainScreen implements Screen{
 		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-		newBody();
+		
+		
 		game.batch.begin(); //BEGIN
-		
+		score.draw(game.batch, "Score: " + sc.getSc(), 50, 50);
 		//randomSound();
-		
-		frameTimer();
-		isPressed();
-		moveHead();
-		moveBody();	
-		newBody();
 		spawnApples();
+		newBody();
 		drawBody();
-		debug();
-		bodyRectangle();
-		score.draw(game.batch, "Score: " + sc.getSc(), 50, 700);
-		snakeSize = snake_body.size;
-		rectanglesPosition();
+		moveHead();
+		moveBody();		
+		bodyRectangle();	
+		rectanglesPosition();	
+		isPressed();	
 		collisionWithApples();
 		collisionWithEdges();
-		collisionWithBody();
+		collisionWithBody();	
+		frameTimer();
+		debugPos();
+		snakeSize = snake_body.size;
 		drawWorldLines();
 		game.batch.end(); //END
 		
@@ -285,11 +285,12 @@ public class MainScreen implements Screen{
 		}
 	}
 	
-	public void debug() {
+	public void debugPos() {
 		if(Gdx.input.isKeyJustPressed(Keys.P) && debugpos == false) {
 			debugpos = true;
 		}else if(Gdx.input.isKeyJustPressed(Keys.P) && debugpos == true){
 			debugpos = false;
+			camera.zoom = 1;
 		}	
 		if(debugpos ==true) {
 			size.draw(game.batch, "Size: " + snakeSize, snake_body.get(0).getX()-10, snake_body.get(0).getY() + 60);
@@ -389,14 +390,14 @@ public class MainScreen implements Screen{
 	}
 	
 	public void drawWorldLines() {
-		
-		worldLine.begin(ShapeType.Line);
-		worldLine.line(0, 0, 1282, 0);
-		worldLine.line(0, 0, 0,762);
-		worldLine.line(1282, 762 , 1282, 0);
-		worldLine.line(1282, 762, 0, 762);
-		worldLine.setColor(Color.BLACK);
-		worldLine.end();
+			score.draw(game.batch, "lol", 50, 50);
+			worldLine.begin(ShapeType.Line);
+			worldLine.line(0, 0, 1282, 0);
+			worldLine.line(0, 0, 0,762);
+			worldLine.line(1282, 762 , 1282, 0);
+			worldLine.line(1282, 762, 0, 762);
+			worldLine.setColor(Color.BLACK);
+			worldLine.end();
 	}
 	
 	@Override
@@ -406,8 +407,9 @@ public class MainScreen implements Screen{
 
 	@Override
 	public void pause() {
-		
-	}
+
+		}
+	
 
 	@Override
 	public void resume() {
@@ -430,6 +432,7 @@ public class MainScreen implements Screen{
 		debug.dispose();
 		score.dispose();
 		size.dispose();
+		worldLine.dispose();
 		
 	}
 	
