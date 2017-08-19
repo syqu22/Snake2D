@@ -5,11 +5,11 @@ import java.util.Random;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Music;
-import com.badlogic.gdx.audio.Sound;
+import com.badlogic.gdx.audio.*;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.Array;
 
 public class MainScreen implements Screen{
 	
+	private OrthographicCamera camera;
 	private Texture snake_headtx,snake_bodytx,apple1tx,apple2tx,apple3tx;
 	private Sprite apple1,apple2,apple3;
 	private BitmapFont debug,score,size;
@@ -25,22 +26,28 @@ public class MainScreen implements Screen{
 	private Array<Sprite> snake_body;
 	private Array<Rectangle> snake_bodyrt;
 	private Array<Sound> sounds;
-	private Array<Music> music;
+	//private Array<Music> music;
+	
 	private ArrayList<Float> lastX;
 	private ArrayList<Float> lastY;
+	
 	private Score sc;
 	
 	
 	SnakeGame game;
 
 	private int frames;
+	private int randomSound;
 	private int moveDirection;
 	private int canAddBody = 0;
 	private int snakeSize;
+	private boolean canPlayRandomSound = false;
 	private boolean debugpos = false;
 	private boolean spawnApple1 = true;
 	private boolean spawnApple2 = true;
 	private boolean spawnApple3 = true;
+	private float width = Gdx.graphics.getWidth();
+	private float height = Gdx.graphics.getHeight();
 	
 	public MainScreen(SnakeGame game) {
 		this.game = game;
@@ -50,15 +57,17 @@ public class MainScreen implements Screen{
 
 	@Override
 	public void show() {
-		sounds = new Array<Sound>();//SOUNDS
-		//sounds.add(new Sound(Gdx.audio.newSound(Gdx.files.internal("sound/snake_noise.mp3")))); //EATING APPLE - 0
-		//sounds.add(new Sound(Gdx.audio.newSound(Gdx.files.internal("sound/snake_noise.mp3")))); //SNAKE NOISE  - 1
-		//sounds.add(new Sound(Gdx.audio.newSound(Gdx.files.internal("sound/snake_noise.mp3")))); //HIT OBJECT   - 2
-		//sounds.add(new Sound(Gdx.audio.newSound(Gdx.files.internal("sound/snake_noise.mp3")))); //GAME OVER    - 3
 		
-		//music = new Array<Music>();//MUSIC
-		//music.add(new Music()); //MUSIC - 0
-		//music.add(new Music()); //MUSIC - 1
+		camera = new OrthographicCamera(width, height);
+		camera.position.set(camera.viewportWidth /2f, camera.viewportHeight/2f , 0);
+		camera.update();
+		
+		Sound snakeNoise = Gdx.audio.newSound(Gdx.files.internal("sound/snake_noise.mp3"));
+		//Sound snakeEating = Gdx.audio.newSound(Gdx.files.internal("sound/snake_eating.mp3"));
+		sounds = new Array<Sound>();//SOUNDS
+		sounds.add(snakeNoise); 	//SNAKE NOISE  - 0
+		//sounds.add(snakeEating);	//SNAKE EATING - 1
+		
 		
 		sc = new Score();
 		debug = new BitmapFont();
@@ -109,52 +118,31 @@ public class MainScreen implements Screen{
 		snake_body.add(new Sprite(snake_bodytx));
 		snake_body.add(new Sprite(snake_bodytx));
 		
-
+		
+		
+		
 	}
 
 	@Override
 	public void render(float delta) {
+		camera.update();
+		game.batch.setProjectionMatrix(camera.combined);
 		
-		if(Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W)) {
-			if(moveDirection == 1) {
-	
-			}else {
-			moveDirection = 0;
-
-			}
-		}
-		if(Gdx.input.isKeyJustPressed(Keys.DOWN)|| Gdx.input.isKeyJustPressed(Keys.S)){
-			if(moveDirection == 0) {
-			 
-			}else {
-			moveDirection = 1;
-		
-			}
-		}
-		if(Gdx.input.isKeyJustPressed(Keys.LEFT)|| Gdx.input.isKeyJustPressed(Keys.A)) {
-			if(moveDirection == 3) {
-				
-			}else {
-			moveDirection = 2;
-			
-
-			}
-		}
-		if(Gdx.input.isKeyJustPressed(Keys.RIGHT) || Gdx.input.isKeyJustPressed(Keys.D)) {
-			if(moveDirection == 2) {
-				
-			}else {
-			moveDirection = 3;
-			}
-		}
-		if(Gdx.input.isKeyPressed(Keys.ESCAPE)) {
-			game.setScreen(new MainMenu(game));
-		}
 		
 		Gdx.gl.glClearColor(1, 1, 1, 1);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		newBody();
 		game.batch.begin(); //BEGIN
+		
+		randomSound+=1; //TODO
+			if(randomSound<=360 && randomSound >= 60) {
+				canPlayRandomSound = true;
+			}
+			if(randomSound>=1800) {
+				canPlayRandomSound = false;
+				randomSound=0;
+			}
+			
 		frames+=1;
 		if(frames>=6) {
 			lastX.add(snake_body.get(0).getX());
@@ -162,6 +150,8 @@ public class MainScreen implements Screen{
 			
 			frames=0;	
 		}
+		//randomSound();
+		isPressed();
 		moveHead();
 		moveBody();
 			
@@ -175,10 +165,12 @@ public class MainScreen implements Screen{
 		score.draw(game.batch, "Score: " + sc.getSc(), 50, 700);
 		snakeSize = snake_body.size;
 		rectanglesPosition();
+		collisionWithApples();
 		collisionWithEdges();
 		collisionWithBody();
+		zoomCamera();
 		game.batch.end(); //END
-	
+		
 	}
 	public void bodyRectangle() {
 		
@@ -213,6 +205,7 @@ public class MainScreen implements Screen{
 		
 		
 	}
+	
 
 	public void spawnApples() {
 		Random rnd = new Random();
@@ -222,7 +215,7 @@ public class MainScreen implements Screen{
 		apple1.draw(game.batch);
 		apple2.draw(game.batch);
 		apple3.draw(game.batch);
-		collisionWithApples();
+		
 		
 		if(spawnApple1 == true) {
 		spawnApple1 = false;
@@ -315,6 +308,39 @@ public class MainScreen implements Screen{
 			debug.draw(game.batch,"X: " + snake_body.get(0).getX() + "Y: " + snake_body.get(0).getY(), snake_body.get(0).getX() - 25, snake_body.get(0).getY() + 80);
 		}
 	}
+	
+	public void isPressed() {
+		if(Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W)) {
+			if(moveDirection == 1) {
+			}else {
+			moveDirection = 0;
+			}
+		}
+		if(Gdx.input.isKeyJustPressed(Keys.DOWN)|| Gdx.input.isKeyJustPressed(Keys.S)){
+			if(moveDirection == 0) {		 
+			}else {
+			moveDirection = 1;	
+			}
+		}
+		if(Gdx.input.isKeyJustPressed(Keys.LEFT)|| Gdx.input.isKeyJustPressed(Keys.A)) {
+			if(moveDirection == 3) {				
+			}else {
+			moveDirection = 2;			
+			}
+		}
+		if(Gdx.input.isKeyJustPressed(Keys.RIGHT) || Gdx.input.isKeyJustPressed(Keys.D)) {
+			if(moveDirection == 2) {
+				
+			}else {
+			moveDirection = 3;
+			}
+		}
+		if(Gdx.input.isKeyPressed(Keys.ESCAPE)) {
+			game.setScreen(new MainMenu(game));
+		}
+		
+	}
+	
 	public void moveHead() {
 		
 		if(moveDirection == 0) {
@@ -342,7 +368,28 @@ public class MainScreen implements Screen{
 			snake_body.get(i).setPosition(lastX.get(lastX.size()-i), lastY.get(lastY.size()-i));
 		}	
 	}
+	
+	public void randomSound() {
+		if(canPlayRandomSound == true) {
+			sounds.get(0).play(0.1f);
+		}
+	}
 
+	public void zoomCamera() {
+		if(Gdx.input.isKeyPressed(Keys.Z)) {
+			camera.zoom += 0.05f;
+		}
+		if(Gdx.input.isKeyPressed(Keys.X)) {
+			camera.zoom -= 0.05f;
+		}
+		if(camera.zoom <= 1f) {
+			camera.zoom = 1f;
+		}
+		if(camera.zoom >= 2f) {
+			camera.zoom = 2f;
+		}
+	}
+	
 	@Override
 	public void resize(int width, int height) {
 		
