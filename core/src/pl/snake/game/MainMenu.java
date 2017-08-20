@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
@@ -24,8 +25,12 @@ public class MainMenu implements Screen{
 	
 	SnakeGame game;
 	
+	OrthographicCamera camera;
 	BitmapFont debug;
 	Texture title,startbt,optionsbt,exitbt,startbt_select,optionsbt_select,exitbt_select;
+	
+	private float width = Gdx.graphics.getWidth();
+	private float height = Gdx.graphics.getHeight();
 	
 	public MainMenu(SnakeGame game) {
 		this.game = game;
@@ -37,6 +42,9 @@ public class MainMenu implements Screen{
 		optionsbt_select = new Texture("menu/options_button_select.png");
 		exitbt_select = new Texture("menu/exit_button_select.png");
 		debug = new BitmapFont();
+		camera = new OrthographicCamera(width,height);
+		camera.position.set(camera.viewportWidth /2f, camera.viewportHeight/2f , 0);
+		camera.update();
 		debug.setColor(Color.WHITE);
 	}
 
@@ -48,6 +56,8 @@ public class MainMenu implements Screen{
 
 	@Override
 	public void render(float delta) {
+	camera.update();
+	game.batch.setProjectionMatrix(camera.combined);
 	Gdx.gl.glClearColor(1, 0, 0, 1);
 	Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 	game.batch.begin();

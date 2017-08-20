@@ -21,8 +21,8 @@ import com.badlogic.gdx.utils.Array;
 public class MainScreen implements Screen{
 	
 	private OrthographicCamera camera;
-	private Texture snake_headtx,snake_bodytx,apple1tx,apple2tx,apple3tx;
-	private Sprite apple1,apple2,apple3;
+	private Texture snake_headtx,snake_bodytx,apple1tx,apple2tx,apple3tx,terraintx,backgroundtx;
+	private Sprite apple1,apple2,apple3,terrain,background;
 	private BitmapFont debug,score,size;
 	private Rectangle snake_headrt,apple1rt,apple2rt,apple3rt;
 	private Array<Sprite> snake_body;
@@ -40,10 +40,12 @@ public class MainScreen implements Screen{
 	SnakeGame game;
 
 	private int frames;
-	private int randomSound;
+	private int keyDelay;
+	//private int randomSound;
 	private int moveDirection;
 	private int canAddBody = 0;
 	private int snakeSize;
+	private boolean canMove = true;
 	private boolean canPlayRandomSound = false;
 	private boolean debugpos = false;
 	private boolean spawnApple1 = true;
@@ -82,6 +84,13 @@ public class MainScreen implements Screen{
 		score.setColor(Color.BLACK);
 		size = new BitmapFont();
 		size.setColor(Color.BLACK);
+		
+		backgroundtx = new Texture("graphic/background.PNG");
+		background = new Sprite(backgroundtx);
+	
+		terraintx = new Texture("graphic/terrain.png");
+		terrain = new Sprite(terraintx);
+		
 		
 		snake_headtx = new Texture("graphic/snake_head.png");
 		snake_bodytx = new Texture("graphic/snake_body.png");
@@ -138,10 +147,11 @@ public class MainScreen implements Screen{
 		
 		
 		game.batch.begin(); //BEGIN
-		score.draw(game.batch, "Score: " + sc.getSc(), 50, 50);
+	
 		//randomSound();
+		placeTerrain();
 		spawnApples();
-		newBody();
+		drawScore();
 		drawBody();
 		moveHead();
 		moveBody();		
@@ -151,27 +161,29 @@ public class MainScreen implements Screen{
 		collisionWithApples();
 		collisionWithEdges();
 		collisionWithBody();	
-		frameTimer();
+		zoomCamera();
+		
+		frameTimer();	
 		debugPos();
 		snakeSize = snake_body.size;
 		drawWorldLines();
+		
 		game.batch.end(); //END
 		
 	}
 	
 	public void bodyRectangle() {
 		
-		for(int i=1;i<snake_body.size-1;i++) {
-			snake_bodyrt.add(new Rectangle());	
-			
+		for(int i=1;i<snake_body.size;i++) {
+			snake_bodyrt.add(new Rectangle());			
 		}
 		
 		
-		for(int i=3;i<snake_body.size-1;i++) {
+		for(int i=3;i<snake_body.size;i++) {
 			snake_bodyrt.get(i).setX(snake_body.get(i).getX());
 			snake_bodyrt.get(i).setY(snake_body.get(i).getY());
-			snake_bodyrt.get(i).setWidth(10);
-			snake_bodyrt.get(i).setHeight(10);
+			snake_bodyrt.get(i).setWidth(1);
+			snake_bodyrt.get(i).setHeight(1);
 		}
 		
 		
@@ -180,7 +192,7 @@ public class MainScreen implements Screen{
 	public void rectanglesPosition() {
 		snake_headrt.x = snake_body.get(0).getX();
 		snake_headrt.y = snake_body.get(0).getY();
-		
+	
 		apple1rt.x = apple1.getX();
 		apple1rt.y = apple1.getY();
 		
@@ -198,10 +210,6 @@ public class MainScreen implements Screen{
 		Random rnd = new Random();
 		int rndx = rnd.nextInt(1330);
 		int rndy = rnd.nextInt(730);
-		
-		apple1.draw(game.batch);
-		apple2.draw(game.batch);
-		apple3.draw(game.batch);
 		
 		
 		if(spawnApple1 == true) {
@@ -225,6 +233,12 @@ public class MainScreen implements Screen{
 		apple3.setPosition(rndx, rndy);
 		
 		}
+		
+		apple1.draw(game.batch);
+		apple2.draw(game.batch);
+		apple3.draw(game.batch);
+		
+		
 	}
 	
 	public void collisionWithEdges() {
@@ -232,7 +246,7 @@ public class MainScreen implements Screen{
 			game.setScreen(new GameOver(game));
 		
 		}
-		if(snake_body.get(0).getY() <= -1 || snake_body.get(0).getY() >= 730) {			
+		if(snake_body.get(0).getY() <= -1 || snake_body.get(0).getY() >= 730) {
 			game.setScreen(new GameOver(game));
 			
 		}
@@ -240,7 +254,7 @@ public class MainScreen implements Screen{
 	
 	public void collisionWithBody() {
 		for(int i=1;i<snake_body.size;i++) {
-			if(snake_bodyrt.get(i).overlaps(snake_headrt)) {			
+			if(snake_bodyrt.get(i).overlaps(snake_headrt)) {	
 				game.setScreen(new GameOver(game));
 			}
 		}
@@ -283,6 +297,8 @@ public class MainScreen implements Screen{
 		for (int i = 0; i < snake_body.size; i++) {
 			snake_body.get(i).draw(game.batch);
 		}
+		
+		newBody();
 	}
 	
 	public void debugPos() {
@@ -290,45 +306,61 @@ public class MainScreen implements Screen{
 			debugpos = true;
 		}else if(Gdx.input.isKeyJustPressed(Keys.P) && debugpos == true){
 			debugpos = false;
-			camera.zoom = 1;
-		}	
-		if(debugpos ==true) {
+		}if(debugpos == true) {
 			size.draw(game.batch, "Size: " + snakeSize, snake_body.get(0).getX()-10, snake_body.get(0).getY() + 60);
-			debug.draw(game.batch,"X: " + snake_body.get(0).getX() + "Y: " + snake_body.get(0).getY(), snake_body.get(0).getX() - 25, snake_body.get(0).getY() + 80);
-			zoomCamera();
+			debug.draw(game.batch,"X: " + snake_body.get(0).getX() + "Y: " + snake_body.get(0).getY(), snake_body.get(0).getX() - 25, snake_body.get(0).getY() + 80);		
 		}
 	}
 	
 	public void isPressed() {
-		if(Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W)) {
+		keyDelay++;
+		if(keyDelay>=5) {
+			canMove=true;
+			keyDelay=0;
+		}
+		if(canMove == true) {
+		
+		if(Gdx.input.isKeyPressed(Keys.UP) || Gdx.input.isKeyPressed(Keys.W)) {
 			if(moveDirection == 1) {
-			}else {
+			}else {		
 			moveDirection = 0;
+			canMove = false;
+			keyDelay = 0;		
 			}
 		}
-		if(Gdx.input.isKeyJustPressed(Keys.DOWN)|| Gdx.input.isKeyJustPressed(Keys.S)){
+		if(Gdx.input.isKeyPressed(Keys.DOWN)|| Gdx.input.isKeyPressed(Keys.S)){
 			if(moveDirection == 0) {		 
 			}else {
 			moveDirection = 1;	
+			canMove = false;
+			keyDelay = 0;
 			}
 		}
-		if(Gdx.input.isKeyJustPressed(Keys.LEFT)|| Gdx.input.isKeyJustPressed(Keys.A)) {
+		if(Gdx.input.isKeyPressed(Keys.LEFT)|| Gdx.input.isKeyPressed(Keys.A)) {
 			if(moveDirection == 3) {				
 			}else {
-			moveDirection = 2;			
+			moveDirection = 2;	
+			canMove = false;
+			keyDelay = 0;
 			}
 		}
-		if(Gdx.input.isKeyJustPressed(Keys.RIGHT) || Gdx.input.isKeyJustPressed(Keys.D)) {
-			if(moveDirection == 2) {
-				
+		if(Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D)) {
+			if(moveDirection == 2) {			
 			}else {
 			moveDirection = 3;
+			canMove = false;
+			keyDelay = 0;
 			}
 		}
 		if(Gdx.input.isKeyPressed(Keys.ESCAPE)) {
 			game.setScreen(new MainMenu(game));
 		}
+		}
 		
+	}
+	
+	public void drawScore() {
+		score.draw(game.batch, "Score: " + sc.getSc(), Gdx.graphics.getWidth() / 2 - 20, 730);
 	}
 	
 	public void moveHead() {
@@ -365,26 +397,30 @@ public class MainScreen implements Screen{
 	}
 
 	public void zoomCamera() {
+	
 		if(Gdx.input.isKeyPressed(Keys.Z)) {
-			camera.zoom += 0.05f;
+			camera.zoom -= 0.05f;
+			
 		}
 		if(Gdx.input.isKeyPressed(Keys.X)) {
-			camera.zoom -= 0.05f;
+			camera.zoom += 0.05f;	
+		}
+		
+		if(camera.zoom >= 2f) {
+			camera.zoom = 2f;
 		}
 		if(camera.zoom <= 1f) {
 			camera.zoom = 1f;
 		}
-		if(camera.zoom >= 2f) {
-			camera.zoom = 2f;
-		}
+		
+	
 	}
 	
 	public void frameTimer() {
 		frames+=1;
-		if(frames>=6) {
-			lastX.add(snake_body.get(0).getX());
-			lastY.add(snake_body.get(0).getY());
-			
+		if(frames>=6) {		
+				lastX.add(snake_body.get(0).getX());
+				lastY.add(snake_body.get(0).getY());
 			frames=0;	
 		}
 	}
@@ -398,6 +434,13 @@ public class MainScreen implements Screen{
 			worldLine.line(1282, 762, 0, 762);
 			worldLine.setColor(Color.BLACK);
 			worldLine.end();
+	}
+	
+	public void placeTerrain() {
+		background.setPosition(-644,-359);
+		background.draw(game.batch);
+		terrain.setPosition(0,0);
+		terrain.draw(game.batch);
 	}
 	
 	@Override
@@ -429,6 +472,7 @@ public class MainScreen implements Screen{
 		apple1tx.dispose();
 		apple2tx.dispose();
 		apple3tx.dispose();
+		terraintx.dispose();
 		debug.dispose();
 		score.dispose();
 		size.dispose();
