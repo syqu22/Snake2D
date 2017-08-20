@@ -7,6 +7,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.*;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -20,6 +21,9 @@ import com.badlogic.gdx.utils.Array;
 
 public class MainScreen implements Screen{
 	
+	final float appWidth = 1280;
+	final float appHeight = 720;
+	
 	private OrthographicCamera camera;
 	private Texture snake_headtx,snake_bodytx,apple1tx,apple2tx,apple3tx,terraintx,backgroundtx;
 	private Sprite apple1,apple2,apple3,terrain,background;
@@ -30,12 +34,10 @@ public class MainScreen implements Screen{
 	private Array<Sound> sounds;
 	private ShapeRenderer worldLine;
 	//private Array<Music> music;
-	
 	private ArrayList<Float> lastX;
 	private ArrayList<Float> lastY;
-	
 	private Score sc;
-	
+	private Preferences pref;
 	
 	SnakeGame game;
 
@@ -63,9 +65,12 @@ public class MainScreen implements Screen{
 	@Override
 	public void show() {
 		
+		pref = Gdx.app.getPreferences("Score");
+		
 		worldLine = new ShapeRenderer();
 		
 		camera = new OrthographicCamera(width, height);
+		camera.setToOrtho(false,appWidth,appHeight);
 		camera.position.set(camera.viewportWidth /2f, camera.viewportHeight/2f , 0);
 		camera.update();
 		
@@ -243,19 +248,17 @@ public class MainScreen implements Screen{
 	
 	public void collisionWithEdges() {
 		if(snake_body.get(0).getX() <= -1 || snake_body.get(0).getX() >= 1250) {
-			game.setScreen(new GameOver(game));
-		
+			gameOver();
 		}
 		if(snake_body.get(0).getY() <= -1 || snake_body.get(0).getY() >= 730) {
-			game.setScreen(new GameOver(game));
-			
+			gameOver();		
 		}
 	}
 	
 	public void collisionWithBody() {
 		for(int i=1;i<snake_body.size;i++) {
 			if(snake_bodyrt.get(i).overlaps(snake_headrt)) {	
-				game.setScreen(new GameOver(game));
+				gameOver();
 			}
 		}
 	}
@@ -320,7 +323,7 @@ public class MainScreen implements Screen{
 		}
 		if(canMove == true) {
 		
-		if(Gdx.input.isKeyPressed(Keys.UP) || Gdx.input.isKeyPressed(Keys.W)) {
+		if(Gdx.input.isKeyJustPressed(Keys.UP) || Gdx.input.isKeyJustPressed(Keys.W)) {
 			if(moveDirection == 1) {
 			}else {		
 			moveDirection = 0;
@@ -328,7 +331,7 @@ public class MainScreen implements Screen{
 			keyDelay = 0;		
 			}
 		}
-		if(Gdx.input.isKeyPressed(Keys.DOWN)|| Gdx.input.isKeyPressed(Keys.S)){
+		if(Gdx.input.isKeyJustPressed(Keys.DOWN)|| Gdx.input.isKeyJustPressed(Keys.S)){
 			if(moveDirection == 0) {		 
 			}else {
 			moveDirection = 1;	
@@ -336,7 +339,7 @@ public class MainScreen implements Screen{
 			keyDelay = 0;
 			}
 		}
-		if(Gdx.input.isKeyPressed(Keys.LEFT)|| Gdx.input.isKeyPressed(Keys.A)) {
+		if(Gdx.input.isKeyJustPressed(Keys.LEFT)|| Gdx.input.isKeyJustPressed(Keys.A)) {
 			if(moveDirection == 3) {				
 			}else {
 			moveDirection = 2;	
@@ -344,7 +347,7 @@ public class MainScreen implements Screen{
 			keyDelay = 0;
 			}
 		}
-		if(Gdx.input.isKeyPressed(Keys.RIGHT) || Gdx.input.isKeyPressed(Keys.D)) {
+		if(Gdx.input.isKeyJustPressed(Keys.RIGHT) || Gdx.input.isKeyJustPressed(Keys.D)) {
 			if(moveDirection == 2) {			
 			}else {
 			moveDirection = 3;
@@ -360,7 +363,7 @@ public class MainScreen implements Screen{
 	}
 	
 	public void drawScore() {
-		score.draw(game.batch, "Score: " + sc.getSc(), Gdx.graphics.getWidth() / 2 - 20, 730);
+		score.draw(game.batch, "Score: " + sc.getSc(), appWidth / 2 - 20, 720);
 	}
 	
 	public void moveHead() {
@@ -441,6 +444,11 @@ public class MainScreen implements Screen{
 		background.draw(game.batch);
 		terrain.setPosition(0,0);
 		terrain.draw(game.batch);
+	}
+	
+	public void gameOver() {
+		pref.putFloat("score", sc.getSc());
+		game.setScreen(new GameOver(game));
 	}
 	
 	@Override

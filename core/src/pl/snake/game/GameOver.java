@@ -3,6 +3,7 @@ package pl.snake.game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Input.Keys;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -10,7 +11,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 public class GameOver implements Screen{
 	SnakeGame game;
 	BitmapFont scoreFont;
+	Preferences pref;
 	
+	private int score;
 	
 	public GameOver(SnakeGame game) {
 		this.game = game;
@@ -20,6 +23,9 @@ public class GameOver implements Screen{
 	public void show() {
 		scoreFont = new BitmapFont();
 		scoreFont.setColor(Color.YELLOW);
+		
+		Preferences pref = Gdx.app.getPreferences("Score");
+		score = (int) pref.getFloat("score", 0);
 	
 	}
 
@@ -30,7 +36,7 @@ public class GameOver implements Screen{
 		game.batch.begin();
 	
 
-		scoreFont.draw(game.batch, "Your score: TODO", 700, 500); //TODO
+		scoreFont.draw(game.batch, "Your score: " + score, 700, 500); //TODO
 		
 		game.batch.end();
 		

@@ -5,7 +5,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
 public class SnakeGame extends Game {
 	public final int WIDTH = 1280;
-	public final int HEIGHT = 960;
+	public final int HEIGHT = 720;
 	
 	SpriteBatch batch;
 	
