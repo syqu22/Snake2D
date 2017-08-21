@@ -5,4 +5,4 @@ avoid walls and your own body.
 
 
 **Up to date relase:**
-v0.2.1 https://github.com/syqu22/Snake2D-LibGDX/releases/tag/v0.2.1
+v0.3 https://github.com/syqu22/Snake2D-LibGDX/releases/tag/v0.3
