@@ -2,8 +2,8 @@ package pl.snake.game;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.Input.Keys;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -28,6 +28,7 @@ public class MainMenu implements Screen{
 	private static final int EXIT_BUTTON_Y = 170;
 	SnakeGame game;
 	
+	Sound click;
 	OrthographicCamera camera;
 	BitmapFont debug;
 	Texture title,startbt,optionsbt,highscoresbt,exitbt,startbt_select,optionsbt_select,highscoresbt_select,exitbt_select;
@@ -37,6 +38,8 @@ public class MainMenu implements Screen{
 	
 	public MainMenu(SnakeGame game) {
 		this.game = game;
+		
+		
 		title = new Texture("menu/title.png");
 		startbt = new Texture("menu/start_button.png");
 		startbt_select = new Texture("menu/start_button_select.png");
@@ -62,16 +65,17 @@ public class MainMenu implements Screen{
 	public void render(float delta) {
 	camera.update();
 	game.batch.setProjectionMatrix(camera.combined);
-	Gdx.gl.glClearColor(1, 0, 0, 1);
+	Gdx.gl.glClearColor(1, 1, 0, 1);
 	Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
-	game.batch.begin();
-	game.batch.draw(title,game.HEIGHT/2,600);
-	//1280x960
 	
+	game.batch.begin();
+	game.batch.draw(title,500,400);
+	Sound click = Gdx.audio.newSound(Gdx.files.internal("sounds/click.wav"));
 	int x = game.WIDTH / 4 - START_BUTTON_WIDTH /2;
 	if(Gdx.input.getX() < x + START_BUTTON_WIDTH & Gdx.input.getX() > x && Gdx.input.getY()+380 < START_BUTTON_Y + START_BUTTON_HEIGHT &&Gdx.input.getY() + 380> START_BUTTON_Y) {
 		game.batch.draw(startbt_select,x,START_BUTTON_Y ,START_BUTTON_WIDTH,START_BUTTON_HEIGHT);
 		if(Gdx.input.isTouched()) {
+			click.play();
 			game.setScreen(new MainScreen(game));
 		}
 	}else {
@@ -80,7 +84,8 @@ public class MainMenu implements Screen{
 	if(Gdx.input.getX() < x + OPTIONS_BUTTON_WIDTH & Gdx.input.getX() > x &&Gdx.input.getY() + 160 <OPTIONS_BUTTON_Y + OPTIONS_BUTTON_HEIGHT &&Gdx.input.getY() + 160> OPTIONS_BUTTON_Y) {
 		game.batch.draw(optionsbt_select,x,OPTIONS_BUTTON_Y,OPTIONS_BUTTON_WIDTH,OPTIONS_BUTTON_HEIGHT);
 		if(Gdx.input.isTouched()) {
-		game.setScreen(new OptionsScreen(game));
+			click.play();
+			game.setScreen(new OptionsScreen(game));
 		}
 	}else {
 		game.batch.draw(optionsbt,x,OPTIONS_BUTTON_Y,OPTIONS_BUTTON_WIDTH,OPTIONS_BUTTON_HEIGHT);
@@ -88,7 +93,8 @@ public class MainMenu implements Screen{
 	if(Gdx.input.getX() < x + HIGHSCORES_BUTTON_WIDTH & Gdx.input.getX() > x && Gdx.input.getY() - 60 < HIGHSCORES_BUTTON_Y + HIGHSCORES_BUTTON_HEIGHT && Gdx.input.getY() - 60 > HIGHSCORES_BUTTON_Y) {
 		game.batch.draw(highscoresbt_select, x, HIGHSCORES_BUTTON_Y,HIGHSCORES_BUTTON_WIDTH,HIGHSCORES_BUTTON_HEIGHT);
 		if(Gdx.input.isTouched()) {
-			//TODO
+			click.play();
+			game.setScreen(new HighscoresScreen(game));
 		}
 	}else {
 		game.batch.draw(highscoresbt, x, HIGHSCORES_BUTTON_Y,HIGHSCORES_BUTTON_WIDTH,HIGHSCORES_BUTTON_HEIGHT);
@@ -96,12 +102,14 @@ public class MainMenu implements Screen{
 	if(Gdx.input.getX() < x + EXIT_BUTTON_WIDTH & Gdx.input.getX() > x &&Gdx.input.getY() - 280 < EXIT_BUTTON_Y + EXIT_BUTTON_HEIGHT &&Gdx.input.getY() - 280> EXIT_BUTTON_Y) {
 		game.batch.draw(exitbt_select,x,EXIT_BUTTON_Y,EXIT_BUTTON_WIDTH,EXIT_BUTTON_HEIGHT);
 		if(Gdx.input.isTouched()){
+			click.play();
 			Gdx.app.exit();
 		}
 	}else {
 		game.batch.draw(exitbt,x,EXIT_BUTTON_Y,EXIT_BUTTON_WIDTH,EXIT_BUTTON_HEIGHT);
 	}
 	if(Gdx.input.isKeyJustPressed(Keys.ESCAPE)) {
+		click.play();
 		Gdx.app.exit();
 	}
 	game.batch.end();

@@ -25,30 +25,31 @@ public class MainScreen implements Screen{
 	final float appHeight = 720;
 	
 	private OrthographicCamera camera;
-	private Texture snake_headtx,snake_bodytx,apple1tx,apple2tx,apple3tx,terraintx,backgroundtx;
+	private Texture snake_headtx,snake_bodytx,apple1tx,apple2tx,apple3tx,terraintx,backgroundtx, hearttx, heartemptytx;
 	private Sprite apple1,apple2,apple3,terrain,background;
 	private BitmapFont debug,score,size;
 	private Rectangle snake_headrt,apple1rt,apple2rt,apple3rt;
-	private Array<Sprite> snake_body;
+	private Array<Sprite> snake_body, hearts;
 	private Array<Rectangle> snake_bodyrt;
 	private Array<Sound> sounds;
-	private ShapeRenderer worldLine;
-	//private Array<Music> music;
 	private ArrayList<Float> lastX;
 	private ArrayList<Float> lastY;
+	private ShapeRenderer worldLine;
 	private Score sc;
 	private Preferences pref;
+	private Music music;
+	private Sound snakeEating,snakeNoise;
 	
 	SnakeGame game;
 
+	private int ticks;
 	private int frames;
 	private int keyDelay;
-	//private int randomSound;
 	private int moveDirection;
 	private int canAddBody = 0;
 	private int snakeSize;
+	private int health = 3;
 	private boolean canMove = true;
-	private boolean canPlayRandomSound = false;
 	private boolean debugpos = false;
 	private boolean spawnApple1 = true;
 	private boolean spawnApple2 = true;
@@ -74,12 +75,18 @@ public class MainScreen implements Screen{
 		camera.position.set(camera.viewportWidth /2f, camera.viewportHeight/2f , 0);
 		camera.update();
 		
+		music = Gdx.audio.newMusic(Gdx.files.internal("sounds/music.mp3"));
+		music.setVolume(0.03f);
+		music.setLooping(true);
+
+
+		snakeEating = Gdx.audio.newSound(Gdx.files.internal("sounds/snake_eating.wav"));
+		snakeNoise = Gdx.audio.newSound(Gdx.files.internal("sounds/snake_noise.wav"));
 		
-		Sound snakeNoise = Gdx.audio.newSound(Gdx.files.internal("sound/snake_noise.mp3"));
-		//Sound snakeEating = Gdx.audio.newSound(Gdx.files.internal("sound/snake_eating.mp3"));
 		sounds = new Array<Sound>();//SOUNDS
-		sounds.add(snakeNoise); 	//SNAKE NOISE  - 0
-		//sounds.add(snakeEating);	//SNAKE EATING - 1
+		sounds.add(snakeEating);	//SNAKE EATING - 0
+		sounds.add(snakeNoise); 	//SNAKE NOISE  - 1
+		
 		
 		
 		sc = new Score();
@@ -96,6 +103,14 @@ public class MainScreen implements Screen{
 		terraintx = new Texture("graphic/terrain.png");
 		terrain = new Sprite(terraintx);
 		
+		heartemptytx = new Texture("graphic/heart_empty.png");
+		hearttx = new Texture("graphic/heart.png");
+		hearts = new Array<Sprite>();
+		hearts.add(new Sprite(hearttx));
+		hearts.add(new Sprite(hearttx));
+		hearts.add(new Sprite(hearttx));
+		hearts.add(new Sprite(heartemptytx));
+		hearts.add(new Sprite(heartemptytx));
 		
 		snake_headtx = new Texture("graphic/snake_head.png");
 		snake_bodytx = new Texture("graphic/snake_body.png");
@@ -152,22 +167,23 @@ public class MainScreen implements Screen{
 		
 		
 		game.batch.begin(); //BEGIN
-	
-		//randomSound();
-		placeTerrain();
+		
+		drawTerrain();
+		drawHearts();
 		spawnApples();
 		drawScore();
 		drawBody();
 		moveHead();
 		moveBody();		
-		bodyRectangle();	
+		bodyRectangle();
+		randomNoise();
+		playMusic();
 		rectanglesPosition();	
 		isPressed();	
 		collisionWithApples();
 		collisionWithEdges();
 		collisionWithBody();	
 		zoomCamera();
-		
 		frameTimer();	
 		debugPos();
 		snakeSize = snake_body.size;
@@ -214,27 +230,27 @@ public class MainScreen implements Screen{
 	public void spawnApples() {
 		Random rnd = new Random();
 		int rndx = rnd.nextInt(1330);
-		int rndy = rnd.nextInt(730);
+		int rndy = rnd.nextInt(700) + 10;
 		
 		
 		if(spawnApple1 == true) {
 		spawnApple1 = false;
 		rndx = rnd.nextInt(1250);
-		rndy = rnd.nextInt(730);
+		rndy = rnd.nextInt(710) + 10;
 		apple1.setPosition(rndx, rndy);
 			
 		}
 		if(spawnApple2 == true) {
 		spawnApple2 = false;
 		rndx = rnd.nextInt(1250);
-		rndy = rnd.nextInt(730);
+		rndy = rnd.nextInt(710)  + 10;
 		apple2.setPosition(rndx, rndy);
 		
 		}
 		if(spawnApple3 == true) {
 		spawnApple3 = false;
 		rndx = rnd.nextInt(1250);
-		rndy = rnd.nextInt(730);
+		rndy = rnd.nextInt(710) + 10;
 		apple3.setPosition(rndx, rndy);
 		
 		}
@@ -268,17 +284,20 @@ public class MainScreen implements Screen{
 			canAddBody = 2;
 		}
 		if(snake_headrt.overlaps(apple1rt)) {
+			playSound(0,0.01f,2,0);
 			sc.setSc(sc.getSc()+5);
 			spawnApple1 = true;
 			canAddBody++;
 			
 		}
 		if(snake_headrt.overlaps(apple2rt)) {
+			playSound(0,0.01f,2,0);
 			sc.setSc(sc.getSc()+5);
 			spawnApple2 = true;
-			canAddBody++;
+			canAddBody++;	
 		}
 		if(snake_headrt.overlaps(apple3rt)) {
+			playSound(0,0.01f,2,0);
 			sc.setSc(sc.getSc()+5);
 			spawnApple3 = true;
 			canAddBody++;
@@ -362,6 +381,31 @@ public class MainScreen implements Screen{
 		
 	}
 	
+	public void drawHearts() {
+		hearts.get(0).setPosition(1080, 15);
+		
+		hearts.get(1).setPosition(1140, 15);
+		hearts.get(4).setPosition(1140, 15);
+		
+		hearts.get(2).setPosition(1200, 15);
+		hearts.get(3).setPosition(1200, 15);
+		
+		if(health == 3) {
+			hearts.get(0).draw(game.batch);
+			hearts.get(1).draw(game.batch);
+			hearts.get(2).draw(game.batch);
+		}else if(health == 2) {
+			hearts.get(0).draw(game.batch);
+			hearts.get(1).draw(game.batch);
+			hearts.get(3).draw(game.batch);
+		}else if(health == 1) {
+			hearts.get(0).draw(game.batch);
+			hearts.get(3).draw(game.batch);
+			hearts.get(4).draw(game.batch);
+		}
+		
+	}
+	
 	public void drawScore() {
 		score.draw(game.batch, "Score: " + sc.getSc(), appWidth / 2 - 20, 720);
 	}
@@ -393,12 +437,6 @@ public class MainScreen implements Screen{
 		}	
 	}
 	
-	public void randomSound() {
-		if(canPlayRandomSound == true) {
-			sounds.get(0).play(0.1f);
-		}
-	}
-
 	public void zoomCamera() {
 	
 		if(Gdx.input.isKeyPressed(Keys.Z)) {
@@ -439,7 +477,7 @@ public class MainScreen implements Screen{
 			worldLine.end();
 	}
 	
-	public void placeTerrain() {
+	public void drawTerrain() {
 		background.setPosition(-644,-359);
 		background.draw(game.batch);
 		terrain.setPosition(0,0);
@@ -447,8 +485,30 @@ public class MainScreen implements Screen{
 	}
 	
 	public void gameOver() {
+		music.stop();
 		pref.putFloat("score", sc.getSc());
-		game.setScreen(new GameOver(game));
+		game.setScreen(new GameOverScreen(game));
+	}
+	
+	public void randomNoise() {
+		ticks++;
+		if(ticks>=500) {
+			playSound(1,0.01f,1,0);
+			ticks=0;
+		}
+	}
+	
+	public void playSound(int sound,float volume, float speed, float pan) {
+		//VOLUME 0f - 1f
+		//SPEED  0 - 2
+		//PAN   -1 - 1
+		sounds.get(sound).play(volume,speed, pan);
+	}
+	
+	public void playMusic() {
+		if(music.isPlaying() != true) {
+			music.play();
+		}
 	}
 	
 	@Override
@@ -485,7 +545,9 @@ public class MainScreen implements Screen{
 		score.dispose();
 		size.dispose();
 		worldLine.dispose();
-		
+		music.dispose();
+		snakeEating.dispose();
+		snakeNoise.dispose();
 	}
 	
 }
