@@ -10,7 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 
 public class GameOverScreen implements Screen{
 	SnakeGame game;
-	BitmapFont scoreFont;
+	BitmapFont scoreFont,backFont;
 	Preferences pref;
 	
 	private int score;
@@ -23,6 +23,9 @@ public class GameOverScreen implements Screen{
 	public void show() {
 		scoreFont = new BitmapFont();
 		scoreFont.setColor(Color.YELLOW);
+		backFont = new BitmapFont();
+		backFont.setColor(Color.YELLOW);
+	
 		
 		Preferences pref = Gdx.app.getPreferences("Score");
 		score = (int) pref.getFloat("score", 0);
@@ -34,13 +37,13 @@ public class GameOverScreen implements Screen{
 		Gdx.gl.glClearColor(0, 0, 0, 0);
 		Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 		game.batch.begin();
-	
 
-		scoreFont.draw(game.batch, "Your score: " + score, 700, 500); //TODO
+		scoreFont.draw(game.batch, "Your score: " + score, 400, 500);
+		backFont.draw(game.batch, "Press anything to back to menu.", 350,350);
 		
 		game.batch.end();
 		
-		if(Gdx.input.isKeyJustPressed(Keys.ESCAPE)) {
+		if(Gdx.input.isKeyJustPressed(Keys.ANY_KEY)) {
 			game.setScreen(new MainMenu(game));
 		}
 	}

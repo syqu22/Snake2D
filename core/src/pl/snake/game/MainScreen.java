@@ -188,7 +188,7 @@ public class MainScreen implements Screen{
 		debugPos();
 		snakeSize = snake_body.size;
 		drawWorldLines();
-		
+		gameOver();
 		game.batch.end(); //END
 		
 	}
@@ -264,17 +264,21 @@ public class MainScreen implements Screen{
 	
 	public void collisionWithEdges() {
 		if(snake_body.get(0).getX() <= -1 || snake_body.get(0).getX() >= 1250) {
-			gameOver();
+			snake_body.get(0).setPosition(600, 100);
+			moveDirection=0;
+			health--;
 		}
 		if(snake_body.get(0).getY() <= -1 || snake_body.get(0).getY() >= 730) {
-			gameOver();		
+			snake_body.get(0).setPosition(600, 100);
+			moveDirection=0;
+			health--;
 		}
 	}
 	
 	public void collisionWithBody() {
 		for(int i=1;i<snake_body.size;i++) {
 			if(snake_bodyrt.get(i).overlaps(snake_headrt)) {	
-				gameOver();
+				health--;
 			}
 		}
 	}
@@ -454,7 +458,7 @@ public class MainScreen implements Screen{
 			camera.zoom = 1f;
 		}
 		
-	
+		
 	}
 	
 	public void frameTimer() {
@@ -485,9 +489,11 @@ public class MainScreen implements Screen{
 	}
 	
 	public void gameOver() {
-		music.stop();
-		pref.putFloat("score", sc.getSc());
-		game.setScreen(new GameOverScreen(game));
+		if(health<=0) {
+			music.stop();
+			pref.putFloat("score", sc.getSc());
+			game.setScreen(new GameOverScreen(game));
+		}
 	}
 	
 	public void randomNoise() {
